@@ -1,0 +1,144 @@
+name: flutter_application
+description: A new Flutter project.
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^2.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+  - assets/images/profile.jpg
+  - assets/images/cafe.jpg
+  - assets/images/chinese.jpg
+  - assets/images/european.jpg
+  - assets/images/indonesian.jpg
+  - assets/images/japanese.jpg
+  - assets/images/Cafe/8_oz.jpg
+  - assets/images/Cafe/bataputi.jpg
+  - assets/images/Cafe/coffee.jpg
+  - assets/images/Cafe/golden.jpg
+  - assets/images/Cafe/handall.jpg
+  - assets/images/Cafe/java_dancer.jpg
+  - assets/images/Cafe/ladang.jpg
+  - assets/images/Cafe/malbourne.jpg
+  - assets/images/Cafe/mmmm.jpg
+  - assets/images/Cafe/vosco.jpg
+  - assets/images/Chinese/ahyat.jpg
+  - assets/images/Chinese/djangkrik.jpg
+  - assets/images/Chinese/gl8.jpg
+  - assets/images/Chinese/gloria.jpg
+  - assets/images/Chinese/hok_lay.jpg
+  - assets/images/Chinese/hongkong.jpg
+  - assets/images/Chinese/kds.jpg
+  - assets/images/Chinese/kee_tjie.jpg
+  - assets/images/Chinese/melati.jpg
+  - assets/images/Chinese/sari_rasa.jpg
+  - assets/images/European/amsterdam.jpg
+  - assets/images/European/arbanat.jpg
+  - assets/images/European/black_castle.jpg
+  - assets/images/European/brothers.jpg
+  - assets/images/European/illy.jpg
+  - assets/images/European/la_regina.jpg
+  - assets/images/European/malibu.jpg
+  - assets/images/European/oura.jpg
+  - assets/images/European/pintbait.jpg
+  - assets/images/Indonesian/bakso_president.jpg
+  - assets/images/Indonesian/javanine.jpg
+  - assets/images/Indonesian/pecel_kawi.jpg
+  - assets/images/Indonesian/rawon.jpg
+  - assets/images/Indonesian/rempah.jpg
+  - assets/images/Indonesian/RM_inggil.jpg
+  - assets/images/Indonesian/RM_kartanegara.jpg
+  - assets/images/Indonesian/sate_klopo.jpg
+  - assets/images/Indonesian/soto_ayam.jpg
+  - assets/images/Indonesian/warung_wareg.jpg
+  - assets/images/Japanese/ichiban.jpg
+  - assets/images/Japanese/iki_japanese.jpg
+  - assets/images/Japanese/kedaishi.jpg
+  - assets/images/Japanese/labada.jpg
+  - assets/images/Japanese/rumah_jagal.jpg
+  - assets/images/Japanese/saboten.jpg
+  - assets/images/Japanese/skipjack.jpg
+  - assets/images/Japanese/sugoi_tei.jpg
+  - assets/images/Japanese/yagami.jpg
+  - assets/images/Japanese/yoshinoya.jpg
+  #   - images/a_dot_ham.jpeg
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/custom-fonts/#from-packages
