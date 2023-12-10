@@ -1,20 +1,48 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application/firestore_service.dart';
 import 'package:flutter_application/main_screen.dart';
 import 'package:flutter_application/review_chinese.dart';
 
-class detail_chinese extends StatelessWidget {
-  const detail_chinese({super.key, required Kategori kategori});
+class detail_chinese extends StatefulWidget {
+  final DocumentSnapshot kategori;
+
+  const detail_chinese({Key? key, required this.kategori}) : super(key: key);
+
+  @override
+  State<detail_chinese> createState() => Detail_chinese();
+}
+
+class Detail_chinese extends State<detail_chinese> {
+  late TextEditingController _searchController;
+  List<DocumentSnapshot> userList = [];
+
+  List<DocumentSnapshot> searchResults = [];
+  bool isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+
+    FirestoreService().getchinese().listen((QuerySnapshot snapshot) {
+      setState(() {
+        userList = snapshot.docs;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFCEDEBD),
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 255, 196, 0),
+        backgroundColor: Color(0xFF435334),
         title: const Text(
           'Chinese Restaurant',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 30.0,
+            color: Color(0xFFFAF1E4),
+            fontSize: 25.0,
           ),
         ),
         toolbarHeight: 70.0,
@@ -26,6 +54,19 @@ class detail_chinese extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  isSearching = true;
+                  searchResults = userList.where((document) {
+                    Map<String, dynamic> data =
+                        document.data() as Map<String, dynamic>;
+                    return data['name']
+                        .toLowerCase()
+                        .contains(value.toLowerCase());
+                  }).toList();
+                });
+              },
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search, size: 30.0),
                 hintText: 'Search',
@@ -38,65 +79,85 @@ class detail_chinese extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              separatorBuilder: (context, index) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                  ),
-                );
-              },
-              itemCount: ListChinese.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => review_chinese(
-                          chinese: ListChinese[index],
-                        ),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    elevation: 15,
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    color: Color.fromARGB(255, 255, 196, 0),
-                    child: Row(
-                      children: [
-                        Image.asset(
-                          ListChinese[index].imageAsset,
-                          width: 150,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ListChinese[index].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+            child: StreamBuilder<QuerySnapshot>(
+                stream: FirestoreService().getchinese(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else {
+                    if (snapshot.hasError) {
+                      return Text(snapshot.error.toString());
+                    } else {
+                      List userList = snapshot.data!.docs;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: isSearching
+                              ? searchResults.length
+                              : userList.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot documentSnapshot = isSearching
+                                ? searchResults[index]
+                                : userList[index];
+                            Map<String, dynamic> data =
+                                documentSnapshot.data() as Map<String, dynamic>;
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => review_chinese(
+                                      chinese: documentSnapshot,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                elevation: 15,
+                                margin: EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 20),
+                                color: Color(0xFF9EB384),
+                                child: Row(
+                                  children: [
+                                    Image.network(
+                                      data['image'],
+                                      width: 150,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            data['name'],
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF435334),
+                                            ),
+                                          ),
+                                          Text(
+                                            data['address'],
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFFFAF1E4),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                ListChinese[index].address,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      );
+                    }
+                  }
+                }),
           ),
         ],
       ),
@@ -104,7 +165,7 @@ class detail_chinese extends StatelessWidget {
   }
 }
 
-class Chinese {
+/*class Chinese {
   String name;
   String address;
   String imageAsset;
@@ -224,4 +285,4 @@ var ListChinese = [
     waktu: '10.00 - 24.00',
     description: '',
   ),
-];
+];*/

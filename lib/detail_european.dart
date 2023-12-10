@@ -1,20 +1,49 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application/firestore_service.dart';
 import 'package:flutter_application/main_screen.dart';
 import 'package:flutter_application/review_european.dart';
 
-class detail_european extends StatelessWidget {
-  const detail_european({super.key, required Kategori kategori});
+class detail_european extends StatefulWidget {
+  final DocumentSnapshot kategori; // Ganti dengan tipe data yang sesuai
+
+  const detail_european({Key? key, required this.kategori}) : super(key: key);
+
+  @override
+  State<detail_european> createState() => Detail_european();
+}
+
+class Detail_european extends State<detail_european> {
+  late TextEditingController _searchController;
+  List<DocumentSnapshot> userList = []; // Tambahkan deklarasi userList
+
+  List<DocumentSnapshot> searchResults = [];
+  bool isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+
+    // Inisialisasi data userList menggunakan stream Firestore
+    FirestoreService().geteuropean().listen((QuerySnapshot snapshot) {
+      setState(() {
+        userList = snapshot.docs;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFCEDEBD),
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 255, 196, 0),
+        backgroundColor: Color(0xFF435334),
         title: const Text(
           'European Restaurant',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 30.0,
+            color: Color(0xFFFAF1E4),
+            fontSize: 25.0,
           ),
         ),
         toolbarHeight: 70.0,
@@ -26,6 +55,19 @@ class detail_european extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  isSearching = true;
+                  searchResults = userList.where((document) {
+                    Map<String, dynamic> data =
+                        document.data() as Map<String, dynamic>;
+                    return data['name']
+                        .toLowerCase()
+                        .contains(value.toLowerCase());
+                  }).toList();
+                });
+              },
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search, size: 30.0),
                 hintText: 'Search',
@@ -38,65 +80,85 @@ class detail_european extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              separatorBuilder: (context, index) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                  ),
-                );
-              },
-              itemCount: ListEuropean.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => review_european(
-                          european: ListEuropean[index],
-                        ),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    elevation: 15,
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    color: Color.fromARGB(255, 255, 196, 0),
-                    child: Row(
-                      children: [
-                        Image.asset(
-                          ListEuropean[index].imageAsset,
-                          width: 150,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ListEuropean[index].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+            child: StreamBuilder<QuerySnapshot>(
+                stream: FirestoreService().geteuropean(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else {
+                    if (snapshot.hasError) {
+                      return Text(snapshot.error.toString());
+                    } else {
+                      List userList = snapshot.data!.docs;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: isSearching
+                              ? searchResults.length
+                              : userList.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot documentSnapshot = isSearching
+                                ? searchResults[index]
+                                : userList[index];
+                            Map<String, dynamic> data =
+                                documentSnapshot.data() as Map<String, dynamic>;
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => review_european(
+                                      european: documentSnapshot,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                elevation: 15,
+                                margin: EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 20),
+                                color: Color(0xFF9EB384),
+                                child: Row(
+                                  children: [
+                                    Image.network(
+                                      data['image'],
+                                      width: 150,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            data['name'],
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF435334),
+                                            ),
+                                          ),
+                                          Text(
+                                            data['address'],
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFFFAF1E4),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                ListEuropean[index].address,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      );
+                    }
+                  }
+                }),
           ),
         ],
       ),
@@ -104,7 +166,7 @@ class detail_european extends StatelessWidget {
   }
 }
 
-class European {
+/*class European {
   String name;
   String address;
   String imageAsset;
@@ -144,7 +206,7 @@ var ListEuropean = [
     hari: 'Everyday',
     waktu: '09.00 - 24.00',
     description:
-        'Illy Café merupakan cafe yang tempatnya gabung dengan Lai-Lai Market buahnya dalam stu gedung yang sama. Dicafe ini mempunyai fasilitas seperti toilet, free WI-FI, smoking area, maupun non smoking area. Cafe ini menyediakan aneka minuman dan makanan yang lebih ke western.',
+        'Illy Café merupakan european yang tempatnya gabung dengan Lai-Lai Market buahnya dalam stu gedung yang sama. Dieuropean ini mempunyai fasilitas seperti toilet, free WI-FI, smoking area, maupun non smoking area. european ini menyediakan aneka minuman dan makanan yang lebih ke western.',
   ),
   European(
     name: 'Pintbait',
@@ -216,4 +278,4 @@ var ListEuropean = [
     description:
         'Black Castle Restaurant & Boulangerie di Malang adalah destinasi kuliner yang memadukan pesona Eropa dengan kenyamanan yang modern. Terletak di jantung kota, restoran ini menghadirkan suasana yang elegan dan penuh gaya, memberikan pengalaman bersantap yang istimewa.',
   ),
-];
+];*/

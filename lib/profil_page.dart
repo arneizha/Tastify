@@ -1,116 +1,168 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application/edit_profile.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('My Profile'),
-        backgroundColor: Color.fromARGB(255, 255, 196, 0),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(height: 20),
-            CircleAvatar(
-              radius: 70,
-              backgroundImage: AssetImage('assets/images/profile.jpg'),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Arneizha Biktarinanda',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'arnesputri899@gmailcom',
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // Tambahkan logika untuk mengedit profil
-              },
-              child: Text('Edit Profile'),
-            ),
-            SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.all(16),
-              width: double.infinity,
-              color: Colors.grey[200],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'About Me',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Saya seorang pencinta kuliner yang selalu mencari petualangan rasa baru. Saya percaya bahwa hidangan tidak hanya tentang makanan yang lezat, tetapi juga tentang pengalaman, cerita, dan kekayaan budaya yang terkandung di setiap suapan.',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.justify,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.all(16),
-              width: double.infinity,
-              color: Colors.grey[200],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hobi',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconAndText(icon: Icons.music_note, text: 'Musik'),
-                      IconAndText(icon: Icons.sports, text: 'Olahraga'),
-                      IconAndText(icon: Icons.restaurant, text: 'Kuliner'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+  State<ProfilePage> createState() => profilePage();
+}
+
+class profilePage extends State<ProfilePage> {
+  final User? user = FirebaseAuth.instance.currentUser;
+
+  void _handleEditAction(DocumentSnapshot documentSnapshot) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPage(documentId: documentSnapshot.id),
       ),
     );
   }
-}
-
-class IconAndText extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  IconAndText({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 40, color: Colors.blue),
-        SizedBox(height: 5),
-        Text(text, style: TextStyle(fontSize: 16)),
-      ],
+    return Scaffold(
+      backgroundColor: Color(0xFFCEDEBD),
+      appBar: AppBar(
+        backgroundColor: Color(0xFF435334),
+        title: const Text(
+          'My Profile',
+          style: TextStyle(
+            color: Color(0xFFFAF1E4),
+            fontSize: 20.0,
+          ),
+        ),
+      ),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user?.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData) {
+            return Center(child: Text('No Data Available'));
+          }
+          var userData = snapshot.data!.data() as Map<String, dynamic>;
+
+          return ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    SizedBox(height: 70),
+                    CircleAvatar(
+                      radius: 70,
+                      backgroundImage: AssetImage('assets/images/profile.jpg'),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 50),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Username :',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        initialValue:
+                            userData['username'] ?? 'Username not available',
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Full Name :',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        initialValue:
+                            userData['fullname'] ?? 'Full name not available',
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: Container(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Email :',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        initialValue:
+                            userData['email'] ?? 'Email not available',
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 40),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Color(0xFF435334),
+                  ),
+                  onPressed: () {
+                    _handleEditAction(snapshot.data!);
+                  },
+                  child: Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                      color: Color(0xFFFAF1E4),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

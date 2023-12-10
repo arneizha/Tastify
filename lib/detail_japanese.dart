@@ -1,20 +1,49 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application/firestore_service.dart';
 import 'package:flutter_application/main_screen.dart';
 import 'package:flutter_application/review_japanese.dart';
 
-class detail_japanese extends StatelessWidget {
-  const detail_japanese({super.key, required Kategori kategori});
+class detail_japanese extends StatefulWidget {
+  final DocumentSnapshot kategori; // Ganti dengan tipe data yang sesuai
+
+  const detail_japanese({Key? key, required this.kategori}) : super(key: key);
+
+  @override
+  State<detail_japanese> createState() => Detail_japanese();
+}
+
+class Detail_japanese extends State<detail_japanese> {
+  late TextEditingController _searchController;
+  List<DocumentSnapshot> userList = []; // Tambahkan deklarasi userList
+
+  List<DocumentSnapshot> searchResults = [];
+  bool isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+
+    // Inisialisasi data userList menggunakan stream Firestore
+    FirestoreService().getjapanese().listen((QuerySnapshot snapshot) {
+      setState(() {
+        userList = snapshot.docs;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFCEDEBD),
       appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 255, 196, 0),
+        backgroundColor: Color(0xFF435334),
         title: const Text(
           'Japanese Restaurant',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 30.0,
+            color: Color(0xFFFAF1E4),
+            fontSize: 25.0,
           ),
         ),
         toolbarHeight: 70.0,
@@ -26,6 +55,19 @@ class detail_japanese extends StatelessWidget {
             padding:
                 const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
             child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  isSearching = true;
+                  searchResults = userList.where((document) {
+                    Map<String, dynamic> data =
+                        document.data() as Map<String, dynamic>;
+                    return data['name']
+                        .toLowerCase()
+                        .contains(value.toLowerCase());
+                  }).toList();
+                });
+              },
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search, size: 30.0),
                 hintText: 'Search',
@@ -38,65 +80,85 @@ class detail_japanese extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              separatorBuilder: (context, index) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                  ),
-                );
-              },
-              itemCount: ListJapanese.length,
-              itemBuilder: (BuildContext context, int index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => review_japanese(
-                          japanese: ListJapanese[index],
-                        ),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    elevation: 15,
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    color: Color.fromARGB(255, 255, 196, 0),
-                    child: Row(
-                      children: [
-                        Image.asset(
-                          ListJapanese[index].imageAsset,
-                          width: 150,
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                ListJapanese[index].name,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+            child: StreamBuilder<QuerySnapshot>(
+                stream: FirestoreService().getjapanese(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else {
+                    if (snapshot.hasError) {
+                      return Text(snapshot.error.toString());
+                    } else {
+                      List userList = snapshot.data!.docs;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: isSearching
+                              ? searchResults.length
+                              : userList.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot documentSnapshot = isSearching
+                                ? searchResults[index]
+                                : userList[index];
+                            Map<String, dynamic> data =
+                                documentSnapshot.data() as Map<String, dynamic>;
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => review_japanese(
+                                      japanese: documentSnapshot,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                elevation: 15,
+                                margin: EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 20),
+                                color: Color(0xFF9EB384),
+                                child: Row(
+                                  children: [
+                                    Image.network(
+                                      data['image'],
+                                      width: 150,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            data['name'],
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF435334),
+                                            ),
+                                          ),
+                                          Text(
+                                            data['address'],
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Color(0xFFFAF1E4),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                ListJapanese[index].address,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      );
+                    }
+                  }
+                }),
           ),
         ],
       ),
@@ -104,7 +166,7 @@ class detail_japanese extends StatelessWidget {
   }
 }
 
-class Japanese {
+/*class Japanese {
   String name;
   String address;
   String imageAsset;
@@ -178,14 +240,14 @@ var ListJapanese = [
         'Iki Japanese Teriyaki House di Malang adalah persembahan eksklusif cita rasa Jepang yang dipersembahkan dengan sentuhan modern dan inovatif. Terletak di pusat kota, restoran ini menjadi oase bagi para pecinta kuliner Jepang yang menghargai keaslian rasa dalam suasana yang nyaman dan mewah. Dengan desain interior yang elegan dan minimalis, Iki Japanese Teriyaki House menciptakan atmosfer yang penuh keanggunan. Nuansa kayu alami dan elemen desain Jepang yang halus menciptakan suasana yang tenang dan menawan, menciptakan lingkungan yang sempurna untuk pengalaman bersantap yang eksklusif.',
   ),
   Japanese(
-    name: 'LaBaDa Ramen Cafe',
+    name: 'LaBaDa Ramen japanese',
     address: 'Jl. Terusan Sulfat No.70, Pandanwangi, Blimbing, Kota Malng',
     imageAsset: 'assets/images/Japanese/labada.jpg',
     rating: '4.5',
     waktu: 'Everyday',
     hari: '08.00 - 24.00',
     description:
-        'LaBaDa Ramen Cafe berlokasikan di Jl. Terusan Sulfat No.70 Malang East Java. Rata-rata biaya yang diperlukan berkisaran Rp 100.000 / Orang, jam buka pada 16.00 - 22.0 dan merupakan Sushi di area Malang. Restoran ini memang adalah destinasi wisata kuliner di area Malang. Di sini tersedia berbagai makanan enak and memang layak dikunjungi.',
+        'LaBaDa Ramen japanese berlokasikan di Jl. Terusan Sulfat No.70 Malang East Java. Rata-rata biaya yang diperlukan berkisaran Rp 100.000 / Orang, jam buka pada 16.00 - 22.0 dan merupakan Sushi di area Malang. Restoran ini memang adalah destinasi wisata kuliner di area Malang. Di sini tersedia berbagai makanan enak and memang layak dikunjungi.',
   ),
   Japanese(
     name: 'Rumah Jagal Bapa',
@@ -228,4 +290,4 @@ var ListJapanese = [
     description:
         'Berdiri semenjak 2015, Kedaishi tak pernah sepi pengunjung sampai hari ini. Salah satu alasan kenapa kedai ini banyak diminati karena cita rasanya yang lezat untuk lidah masyarakat lokal, melainkan konsisten tidak meninggalkan cita rasa Jepangnya. Mereka mengaplikasikan bahan-bahan yang diimpor seketika dari Jepang agar rasa yang disajikan tetap membuat penikmatnya serasa berada di Negeri Sakura langsung, kemudian mengolahnya agar layak dengan selera Indonesia.',
   ),
-];
+];*/
